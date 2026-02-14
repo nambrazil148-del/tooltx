@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tài Xỉu PRO MAX</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:radial-gradient(circle,#7a0000,#000);
+color:gold;
+text-align:center;
+overflow:hidden;
+}
+
+/* VIỀN 7 MÀU */
+@keyframes rainbow{
+0%{border-color:red;}
+14%{border-color:orange;}
+28%{border-color:yellow;}
+42%{border-color:lime;}
+57%{border-color:cyan;}
+71%{border-color:blue;}
+85%{border-color:violet;}
+100%{border-color:red;}
+}
+
+.box{
+max-width:420px;
+margin:40px auto;
+padding:20px;
+border:4px solid red;
+border-radius:20px;
+animation:rainbow 4s linear infinite;
+background:#111;
+box-shadow:0 0 30px gold;
+position:relative;
+z-index:10;
+}
+
+/* LOGIN */
+#loginBox{
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+z-index:9999;
+animation:glow 2s infinite alternate;
+}
+
+@keyframes glow{
+from{box-shadow:0 0 20px gold;}
+to{box-shadow:0 0 60px red;}
+}
+
+input,button{
+width:100%;
+padding:12px;
+margin-top:10px;
+background:black;
+border:2px solid gold;
+color:gold;
+border-radius:10px;
+}
+
+button:hover{
+background:gold;
+color:black;
+}
+
+#mainGame{display:none;}
+
+/* THANH % 3D */
+.bar{
+height:25px;
+background:#222;
+border-radius:15px;
+margin:10px 0;
+overflow:hidden;
+position:relative;
+box-shadow:inset 0 0 10px black;
+}
+
+.fill{
+height:100%;
+width:0%;
+display:flex;
+align-items:center;
+justify-content:center;
+color:black;
+font-weight:bold;
+position:relative;
+transition:1s;
+}
+
+/* Lấp lánh */
+.fill::after{
+content:"";
+position:absolute;
+top:0;
+left:-100%;
+width:100%;
+height:100%;
+background:linear-gradient(120deg,transparent,rgba(255,255,255,0.6),transparent);
+animation:shine 2s infinite;
+}
+
+@keyframes shine{
+100%{left:100%;}
+}
+
+/* Phát sáng khi >70% */
+.glowBar{
+box-shadow:0 0 20px white,0 0 40px gold;
+}
+
+/* Rung */
+@keyframes rung{
+0%{transform:translateX(-3px);}
+50%{transform:translateX(3px);}
+100%{transform:translateX(-3px);}
+}
+
+.rung{
+animation:rung 0.3s 3;
+}
+
+.tai{background:lime;}
+.xiu{background:red;}
+
+.history{
+margin-top:10px;
+background:black;
+padding:8px;
+border-radius:10px;
+max-height:120px;
+overflow:auto;
+font-size:13px;
+border:1px solid gold;
+}
+
+/* HOA ĐÀO */
+.petal{
+position:fixed;
+top:-10px;
+font-size:18px;
+animation:fall 6s linear infinite;
+}
+
+@keyframes fall{
+to{
+transform:translateY(100vh) rotate(360deg);
+}
+}
+
+/* PHÁO HOA */
+.particle{
+position:fixed;
+width:6px;
+height:6px;
+border-radius:50%;
+pointer-events:none;
+animation:explode 1.2s ease-out forwards;
+}
+
+@keyframes explode{
+to{
+transform:translate(var(--x),var(--y)) scale(0.5);
+opacity:0;
+}
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginBox" class="box">
+<h2>🔐 ĐĂNG NHẬP PRO MAX</h2>
+<input type="password" id="matkhau" placeholder="Nhập mật khẩu...">
+<button onclick="kiemTraMK()">VÀO GAME</button>
+<div id="thongbao" style="color:red;margin-top:8px;"></div>
+</div>
+
+<!-- GAME -->
+<div id="mainGame" class="box">
+<h2>🎆 TÀI XỈU PRO MAX 🎆</h2>
+<button onclick="batNhac()">🔊 Bật Nhạc</button>
+<input type="text" id="phien" placeholder="Nhập mã phiên...">
+<button onclick="duDoan()">Dự Đoán</button>
+
+<div id="ketqua" style="margin-top:10px;font-size:20px;"></div>
+
+<div class="bar">
+<div class="fill tai" id="taiBar">0%</div>
+</div>
+
+<div class="bar">
+<div class="fill xiu" id="xiuBar">0%</div>
+</div>
+
+<div class="history">
+<b>LỊCH SỬ</b>
+<div id="historyList"></div>
+</div>
+</div>
+
+<audio id="bgMusic" loop>
+<source src="nhactet.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+/* ===== BẢO MẬT ===== */
+let userPass="tooltxtn";
+let adminPass="thanhnamsp123";
+let sai=0;
+let khoa=false;
+
+function kiemTraMK(){
+if(khoa) return;
+let mk=document.getElementById("matkhau").value;
+
+if(mk===userPass || mk===adminPass){
+document.getElementById("loginBox").style.display="none";
+document.getElementById("mainGame").style.display="block";
+}
+else{
+sai++;
+document.getElementById("thongbao").innerHTML="Sai ("+sai+"/3)";
+if(sai>=3) khoaHeThong();
+}
+}
+
+function khoaHeThong(){
+khoa=true;
+let dem=30;
+let tb=document.getElementById("thongbao");
+let t=setInterval(()=>{
+dem--;
+tb.innerHTML="Khóa "+dem+"s";
+if(dem<=0){
+clearInterval(t);
+sai=0;
+khoa=false;
+tb.innerHTML="Thử lại";
+}
+},1000);
+}
+
+/* HOA */
+setInterval(()=>{
+let p=document.createElement("div");
+p.className="petal";
+p.innerHTML="🌸";
+p.style.left=Math.random()*window.innerWidth+"px";
+document.body.appendChild(p);
+setTimeout(()=>p.remove(),6000);
+},500);
+
+/* GAME */
+let historyData=[];
+
+function duDoan(){
+let phien=document.getElementById("phien").value;
+if(phien==""){alert("Nhập mã phiên!");return;}
+
+let tai=Math.floor(Math.random()*100);
+let xiu=100-tai;
+let kq=tai>xiu?"TÀI":"XỈU";
+
+document.getElementById("ketqua").innerHTML="Kết quả: "+kq;
+
+let taiBar=document.getElementById("taiBar");
+let xiuBar=document.getElementById("xiuBar");
+
+taiBar.style.width=tai+"%";
+xiuBar.style.width=xiu+"%";
+taiBar.innerHTML=tai+"%";
+xiuBar.innerHTML=xiu+"%";
+
+taiBar.classList.remove("glowBar","rung");
+xiuBar.classList.remove("glowBar","rung");
+
+if(tai>70) taiBar.classList.add("glowBar");
+if(xiu>70) xiuBar.classList.add("glowBar");
+
+if(kq==="TÀI") taiBar.classList.add("rung");
+else xiuBar.classList.add("rung");
+
+historyData.unshift("Phiên "+phien+" → "+kq+" ("+tai+"%)");
+if(historyData.length>10) historyData.pop();
+document.getElementById("historyList").innerHTML=historyData.join("<br>");
+
+noPhat(window.innerWidth/2,window.innerHeight/2);
+}
+
+/* PHÁO HOA */
+function noPhat(x,y){
+const colors=["red","yellow","lime","cyan","orange","white","violet"];
+for(let i=0;i<60;i++){
+let p=document.createElement("div");
+p.className="particle";
+p.style.background=colors[Math.floor(Math.random()*colors.length)];
+let a=Math.random()*2*Math.PI;
+let d=Math.random()*200;
+p.style.setProperty("--x",Math.cos(a)*d+"px");
+p.style.setProperty("--y",Math.sin(a)*d+"px");
+p.style.left=x+"px";
+p.style.top=y+"px";
+document.body.appendChild(p);
+setTimeout(()=>p.remove(),1200);
+}
+}
+
+function batNhac(){
+document.getElementById("bgMusic").play();
+}
+</script>
+
+</body>
+</html>
